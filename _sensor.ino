@@ -5,7 +5,7 @@
  * Date       : 2017-10-19
  * Software   : https://github.com/SandboxElectronics/LoRaGoDOCK-Gateway
  * Hardware   : LoRaGo DOCK – http://sandboxelectronics.com/?product=lorago-dock-single-channel-lorawan-gateway
- * 
+ *
  * Copyright (c) 2016, 2017 Maarten Westenberg
  *
  * All rights reserved. This program and the accompanying materials
@@ -14,14 +14,14 @@
  * https://opensource.org/licenses/mit-license.php
  *
  *****************************************************************************************/
- 
-// This file contains code for using the single channel gateway also as a sensor node. 
+
+// This file contains code for using the single channel gateway also as a sensor node.
 // Please specify the DevAddr and the AppSKey below (and on your LoRa backend).
 // Also you will have to choose what sensors to forward to your application.
-		
+
 #if GATEWAYNODE==1
 
-unsigned char DevAddr[4]  = _DEVADDR ;				// see ESP-sc-gway.h
+unsigned char DevAddr[4]  = _DEVADDR ;				// see config.h
 
 
 // ----------------------------------------------------------------------------
@@ -39,32 +39,32 @@ unsigned char DevAddr[4]  = _DEVADDR ;				// see ESP-sc-gway.h
 
 
 // ----------------------------------------------------------------------------
-// LoRaSensors() is a function that puts sensor values in the MACPayload and 
-// sends these values up to the server. For the server it is impossible to know 
+// LoRaSensors() is a function that puts sensor values in the MACPayload and
+// sends these values up to the server. For the server it is impossible to know
 // whther or not the message comes from a LoRa node or from the gateway.
 //
 // The example code below adds a battery value in lCode (encoding protocol) but
 // of-course you can add any byte string you wish
 //
-// Parameters: 
+// Parameters:
 //	- buf: contains the buffer to put the sensor values in
 // Returns:
-//	- The amount of sensor characters put in the buffer 
+//	- The amount of sensor characters put in the buffer
 // ----------------------------------------------------------------------------
 static int LoRaSensors(uint8_t *buf) {
 
 	uint8_t internalSersors;
 	//internalSersors = readInternal(0x1A);
-	//if (internalSersors > 0) {		
+	//if (internalSersors > 0) {
 	//	return (internalSersors);
 	//}
-	
-	
+
+
 	buf[0] = 0x86;									// 134; User code <lCode + len==3 + Parity
 	buf[1] = 0x80;									// 128; lCode code <battery>
 	buf[2] = 0x3F;									//  63; lCode code <value>
 	// Parity = buf[0]==1 buf[1]=1 buf[2]=0 ==> even, so last bit of first byte must be 0
-	
+
 	return(3);	// return the number of bytes added to payload
 }
 
@@ -105,10 +105,10 @@ static void shift_left(uint8_t * buf, uint8_t len) {
 static void generate_subkey(uint8_t *key, uint8_t *k1, uint8_t *k2) {
 
 	memset(k1, 0, 16);								// Fill subkey1 with 0x00
-	
+
 	// Step 1: Assume k1 is an all zero block
 	AES_Encrypt(k1,key);
-	
+
 	// Step 2: Analyse outcome of Encrypt operation (in k1), generate k1
 	if (k1[0] & 0x80) {
 		shift_left(k1,16);
@@ -117,17 +117,17 @@ static void generate_subkey(uint8_t *key, uint8_t *k1, uint8_t *k2) {
 	else {
 		shift_left(k1,16);
 	}
-	
+
 	// Step 3: Generate k2
 	for (uint8_t i=0; i<16; i++) k2[i]=k1[i];
-	if (k1[0] & 0x80) {								// use k1(==k2) according rfc 
+	if (k1[0] & 0x80) {								// use k1(==k2) according rfc
 		shift_left(k2,16);
 		k2[15] ^= 0x87;
 	}
 	else {
 		shift_left(k2,16);
 	}
-	
+
 	// step 4: Done, return k1 and k2
 	return;
 }
@@ -150,7 +150,7 @@ static void generate_subkey(uint8_t *key, uint8_t *k1, uint8_t *k2) {
 // the meaningful bytes in the last block. This means that encoded buffer
 // is exactly as big as the original message.
 //
-// NOTE:: Be aware that the LICENSE of the used AES library files 
+// NOTE:: Be aware that the LICENSE of the used AES library files
 //	that we call with AES_Encrypt() is GPL3. It is used as-is,
 //  but not part of this code.
 //
@@ -158,21 +158,21 @@ static void generate_subkey(uint8_t *key, uint8_t *k1, uint8_t *k2) {
 // ----------------------------------------------------------------------------
 uint8_t encodePacket(uint8_t *Data, uint8_t DataLength, uint16_t FrameCount, uint8_t Direction) {
 
-	unsigned char AppSKey[16] = _APPSKEY ;	// see ESP-sc-gway.h
+	unsigned char AppSKey[16] = _APPSKEY ;	// see config.h
 	uint8_t i, j;
 	uint8_t Block_A[16];
 	uint8_t bLen=16;						// Block length is 16 except for last block in message
-		
+
 	uint8_t restLength = DataLength % 16;	// We work in blocks of 16 bytes, this is the rest
 	uint8_t numBlocks  = DataLength / 16;	// Number of whole blocks to encrypt
 	if (restLength>0) numBlocks++;			// And add block for the rest if any
 
 	for(i = 1; i <= numBlocks; i++) {
 		Block_A[0] = 0x01;
-		
-		Block_A[1] = 0x00; 
-		Block_A[2] = 0x00; 
-		Block_A[3] = 0x00; 
+
+		Block_A[1] = 0x00;
+		Block_A[2] = 0x00;
+		Block_A[3] = 0x00;
 		Block_A[4] = 0x00;
 
 		Block_A[5] = Direction;				// 0 is uplink
@@ -193,10 +193,10 @@ uint8_t encodePacket(uint8_t *Data, uint8_t DataLength, uint16_t FrameCount, uin
 
 		// Encrypt and calculate the S
 		AES_Encrypt(Block_A, AppSKey);
-		
+
 		// Last block? set bLen to rest
 		if ((i == numBlocks) && (restLength>0)) bLen = restLength;
-		
+
 		for(j = 0; j < bLen; j++) {
 			*Data = *Data ^ Block_A[j];
 			Data++;
@@ -217,7 +217,7 @@ uint8_t encodePacket(uint8_t *Data, uint8_t DataLength, uint16_t FrameCount, uin
 // The official TTN (and other) backends will intrpret the complete message and
 // conclude that the generated message is bogus.
 // So we sill really simulate internal messages coming from the -1ch gateway
-// to come from a real sensor and append 4 MIC bytes to every message that are 
+// to come from a real sensor and append 4 MIC bytes to every message that are
 // perfectly legimate
 // Parameters:
 //	- data:			uint8_t array of bytes = ( MHDR | FHDR | FPort | FRMPayload )
@@ -236,63 +236,63 @@ uint8_t micPacket(uint8_t *data, uint8_t len, uint16_t FrameCount, uint8_t dir) 
 	uint8_t Block_B[16];
 	uint8_t X[16];
 	uint8_t Y[16];
-	
+
 	// ------------------------------------
 	// build the B block used by the MIC process
 	Block_B[0]= 0x49;						// 1 byte MIC code
-			
+
 	Block_B[1]= 0x00;						// 4 byte 0x00
 	Block_B[2]= 0x00;
 	Block_B[3]= 0x00;
 	Block_B[4]= 0x00;
-	
+
 	Block_B[5]= dir;						// 1 byte Direction
-	
+
 	Block_B[6]= DevAddr[3];					// 4 byte DevAddr
 	Block_B[7]= DevAddr[2];
 	Block_B[8]= DevAddr[1];
 	Block_B[9]= DevAddr[0];
-	
+
 	Block_B[10]= (FrameCount & 0x00FF);		// 4 byte FCNT
 	Block_B[11]= ((FrameCount >> 8) & 0x00FF);
 	Block_B[12]= 0x00; 						// Frame counter upper Bytes
 	Block_B[13]= 0x00;						// These are not used so are 0
-	
+
 	Block_B[14]= 0x00;						// 1 byte 0x00
-	
+
 	Block_B[15]= len;						// 1 byte len
-	
+
 	// ------------------------------------
 	// Step 1: Generate the subkeys
 	//
 	uint8_t k1[16];
 	uint8_t k2[16];
 	generate_subkey(NwkSKey, k1, k2);
-	
+
 	// ------------------------------------
 	// Copy the data to a new buffer which is prepended with Block B0
 	//
 	uint8_t micBuf[len+16];					// B0 | data
 	for (uint8_t i=0; i<16; i++) micBuf[i]=Block_B[i];
 	for (uint8_t i=0; i<len; i++) micBuf[i+16]=data[i];
-	
+
 	// ------------------------------------
 	// Step 2: Calculate the number of blocks for CMAC
 	//
 	uint8_t numBlocks = len/16 + 1;			// Compensate for B0 block
 	if ((len % 16)!=0) numBlocks++;			// If we have only a part block, take it all
-	
+
 	// ------------------------------------
 	// Step 3: Calculate padding is necessary
 	//
 	uint8_t restBits = len%16;				// if numBlocks is not a multiple of 16 bytes
-	
-	
+
+
 	// ------------------------------------
 	// Step 5: Make a buffer of zeros
 	//
 	memset(X, 0, 16);
-	
+
 	// ------------------------------------
 	// Step 6: Do the actual encoding according to RFC
 	//
@@ -302,13 +302,13 @@ uint8_t micPacket(uint8_t *data, uint8_t len, uint16_t FrameCount, uint8_t dir) 
 		AES_Encrypt(Y, NwkSKey);
 		for (uint8_t j=0; j<16; j++) X[j] = Y[j];
 	}
-	
+
 
 	// ------------------------------------
 	// Step 4: If there is a rest Block, padd it
 	// Last block. We move step4 to the end as we need Y
 	// to compute the last block
-	// 
+	//
 	if (restBits) {
 		for (uint8_t i=0; i<16; i++) {
 			if (i< restBits) Y[i] = micBuf[((numBlocks-1)*16)+i];
@@ -325,9 +325,9 @@ uint8_t micPacket(uint8_t *data, uint8_t len, uint16_t FrameCount, uint8_t dir) 
 	}
 	mXor(Y, X);
 	AES_Encrypt(Y,NwkSKey);
-	
+
 	// ------------------------------------
-	// Step 7: done, return the MIC size. 
+	// Step 7: done, return the MIC size.
 	// Only 4 bytes are returned (32 bits), which is less than the RFC recommends.
 	// We return by appending 4 bytes to data, so there must be space in data array.
 	//
@@ -351,26 +351,26 @@ uint8_t micPacket(uint8_t *data, uint8_t len, uint16_t FrameCount, uint8_t dir) 
 // ----------------------------------------------------------------------------
 static void checkMic(uint8_t *buf, uint8_t len, uint8_t *key) {
 	uint8_t cBuf[len+1];
-	
+
 	if (debug>=2) {
 		Serial.print(F("old="));
-		for (uint8_t i=0; i<len; i++) { 
-			printHexDigit(buf[i]); 
-			Serial.print(' '); 
+		for (uint8_t i=0; i<len; i++) {
+			printHexDigit(buf[i]);
+			Serial.print(' ');
 		}
 		Serial.println();
-	}	
+	}
 	for (uint8_t i=0; i<len-4; i++) cBuf[i] = buf[i];
 	len -=4;
-	
+
 	uint16_t FrameCount = ( cBuf[7] * 256 ) + cBuf[6];
 	len += micPacket(cBuf, len, FrameCount, 0);
-	
+
 	if (debug>=2) {
 		Serial.print(F("new="));
-		for (uint8_t i=0; i<len; i++) { 
-			printHexDigit(cBuf[i]); 
-			Serial.print(' '); 
+		for (uint8_t i=0; i<len; i++) {
+			printHexDigit(cBuf[i]);
+			Serial.print(' ');
 		}
 		Serial.println();
 	}
@@ -391,12 +391,12 @@ static void checkMic(uint8_t *buf, uint8_t len, uint8_t *key) {
 //		picks it up fine as decoder thinks it is a MAC message.
 //
 // Par 4.0 LoraWan spec:
-//	PHYPayload =	( MHDR | MACPAYLOAD | MIC ) 
+//	PHYPayload =	( MHDR | MACPAYLOAD | MIC )
 // which is equal to
 //					( MHDR | ( FHDR | FPORT | FRMPAYLOAD ) | MIC )
 //
 //	This function makes the totalpackage and calculates MIC
-// Te maximum size of the message is: 12 + ( 9 + 2 + 64 ) + 4	
+// Te maximum size of the message is: 12 + ( 9 + 2 + 64 ) + 4
 // So message size should be lass than 128 bytes if Payload is limited to 64 bytes.
 // ----------------------------------------------------------------------------
 int sensorPacket() {
@@ -405,17 +405,17 @@ int sensorPacket() {
 	uint8_t message[64]={ 0 };							// Payload, init to 0
 	uint8_t mlength = 0;
 	uint32_t tmst = micros();
-	
+
 	// In the next few bytes the fake LoRa message must be put
 	// PHYPayload = MHDR | MACPAYLOAD | MIC
 	// MHDR, 1 byte
 	// MIC, 4 bytes
-	
+
 	// ------------------------------
 	// MHDR (Para 4.2), bit 5-7 MType, bit 2-4 RFU, bit 0-1 Major
 	message[0] = 0x40;									// MHDR 0x40 == unconfirmed up message,
 														// FRU and major are 0
-	
+
 	// -------------------------------
 	// FHDR consists of 4 bytes addr, 1 byte Fctrl, 2 byte FCnt, 0-15 byte FOpts
 	// We support ABP addresses only for Gateways
@@ -423,7 +423,7 @@ int sensorPacket() {
 	message[2] = DevAddr[2];
 	message[3] = DevAddr[1];
 	message[4] = DevAddr[0];							// First byte[0] of Dev_Addr
-	
+
 	message[5] = 0x00;									// FCtrl is normally 0
 	message[6] = frameCount % 0x100;					// LSB
 	message[7] = frameCount / 0x100;					// MSB
@@ -433,19 +433,19 @@ int sensorPacket() {
 	//
 	message[8] = 0x01;									// FPort must not be 0
 	mlength = 9;
-	
+
 	// FRMPayload; Payload will be AES128 encoded using AppSKey
 	// See LoRa spec para 4.3.2
 	// You can add any byte string below based on you personal choice of sensors etc.
 	//
 	// Payload bytes in this example are encoded in the LoRaCode(c) format
 	uint8_t PayLength = LoRaSensors((uint8_t *)(message+mlength));
-	
+
 	// we have to include the AES functions at this stage in order to generate LoRa Payload.
 	uint8_t CodeLength = encodePacket((uint8_t *)(message+mlength), PayLength, (uint16_t)frameCount, 0);
 
 	mlength += CodeLength;								// length inclusive sensor data
-	
+
 	// MIC, Message Integrity Code
 	// As MIC is used by TTN (and others) we have to make sure that
 	// framecount is valid and the message is correctly encrypted.
@@ -459,28 +459,28 @@ int sensorPacket() {
 	// be expanded if the server expacts JSON messages.
 	//
 	int buff_index = buildPacket(tmst, buff_up, message, mlength, true);
-	
+
 	frameCount++;
-	
+
 	// In order to save the memory, we only write the framecounter
 	// to EEPROM every 10 values. It also means that we will invalidate
 	// 10 value when restarting the gateway.
 	//
 	if (( frameCount % 10)==0) writeGwayCfg(CONFIGFILE);
-	
+
 	//yield();								// XXX Can we remove this here?
-	
+
 	if (buff_index > 512) {
 		if (debug>0) Serial.println(F("sensorPacket:: ERROR buffer size too large"));
 		return(-1);
 	}
-	
+
 	sendUdp(buff_up, buff_index);
 
 	// Reset all RX lora stuff
 	_state = S_RX;
 	rxLoraModem();
-			
+
 	// If we now switch to S_SCAN, we have to hop too
 	if (_hop) { hop(); }
 
@@ -489,7 +489,7 @@ int sensorPacket() {
 		_state = S_SCAN;						// Inititialise scanner
 		cadScanner();
 	}
-		
+
 	return(buff_index);
 }
 

@@ -5,7 +5,7 @@
  * Date       : 2017-10-19
  * Software   : https://github.com/SandboxElectronics/LoRaGoDOCK-Gateway
  * Hardware   : LoRaGo DOCK – http://sandboxelectronics.com/?product=lorago-dock-single-channel-lorawan-gateway
- * 
+ *
  * Copyright (c) 2016, 2017 Maarten Westenberg
  *
  * All rights reserved. This program and the accompanying materials
@@ -14,11 +14,11 @@
  * https://opensource.org/licenses/mit-license.php
  *
  *****************************************************************************************/
- 
+
 // This file contains the webserver code for the ESP Single Channel Gateway.
 
 // Note:
-// The ESP Webserver works with Strings to display html content. 
+// The ESP Webserver works with Strings to display html content.
 // Care must be taken that not all data is output to the webserver in one string
 // as this will use a LOT of memory and possibly kill the heap (cause system
 // crash or other unreliable behaviour.
@@ -46,19 +46,19 @@ static void printIP(IPAddress ipa, const char sep, String& response)
 #if A_SERVER==1
 
 // ================================================================================
-// WEBSERVER DECLARATIONS 
+// WEBSERVER DECLARATIONS
 
 // None at the moment
 
 // ================================================================================
-// WEBSERVER FUNCTIONS 
+// WEBSERVER FUNCTIONS
 
 
 // ----------------------------------------------------------------------------
 // Print a HEXadecimal string from a 4-byte char string
 //
 // ----------------------------------------------------------------------------
-static void printHEX(char * hexa, const char sep, String& response) 
+static void printHEX(char * hexa, const char sep, String& response)
 {
 	char m;
 	m = hexa[0]; if (m<016) response+='0'; response += String(m, HEX);  response+=sep;
@@ -76,13 +76,13 @@ static void printHEX(char * hexa, const char sep, String& response)
 static void stringTime(unsigned long t, String& response) {
 
 	if (t==0) { response += "--"; return; }
-	
+
 	// now() gives seconds since 1970
 	time_t eventTime = now() - ((millis()-t)/1000);
 	byte _hour   = hour(eventTime);
 	byte _minute = minute(eventTime);
 	byte _second = second(eventTime);
-	
+
 	switch(weekday(eventTime)) {
 		case 1: response += "Sunday "; break;
 		case 2: response += "Monday "; break;
@@ -95,7 +95,7 @@ static void stringTime(unsigned long t, String& response) {
 	response += String() + day(eventTime) + "-";
 	response += String() + month(eventTime) + "-";
 	response += String() + year(eventTime) + " ";
-	
+
 	if (_hour < 10) response += "0";
 	response += String() + _hour + ":";
 	if (_minute < 10) response += "0";
@@ -122,45 +122,45 @@ static void setVariables(const char *cmd, const char *arg) {
 	if (strcmp(cmd, "DEBUG")==0) {									// Set debug level 0-2
 		if (atoi(arg) == 1) {
 			debug = (debug+1)%4;
-		}	
+		}
 		else if (atoi(arg) == -1) {
 			debug = (debug+3)%4;
 		}
 		writeGwayCfg(CONFIGFILE);									// Save configuration to file
 	}
-	
+
 	if (strcmp(cmd, "CAD")==0) {									// Set -cad on=1 or off=0
 		_cad=(bool)atoi(arg);
 		writeGwayCfg(CONFIGFILE);									// Save configuration to file
 	}
-	
+
 	if (strcmp(cmd, "HOP")==0) {									// Set -hop on=1 or off=0
 		_hop=(bool)atoi(arg);
 		if (! _hop) { ifreq=0; freq=freqs[0]; rxLoraModem(); }
 		writeGwayCfg(CONFIGFILE);									// Save configuration to file
 	}
-	
+
 	if (strcmp(cmd, "DELAY")==0) {									// Set delay usecs
 		txDelay+=atoi(arg)*1000;
 	}
-	
+
 	// SF; Handle Spreading Factor Settings
 	if (strcmp(cmd, "SF")==0) {
 		uint8_t sfi = sf;
 		if (atoi(arg) == 1) {
 			if (sf==SF12) sf=SF7; else sf= (sf_t)((int)sf+1);
-		}	
+		}
 		else if (atoi(arg) == -1) {
 			if (sf==SF7) sf=SF12; else sf= (sf_t)((int)sf-1);
 		}
 		rxLoraModem();												// Reset the radion with the new spreading factor
 		writeGwayCfg(CONFIGFILE);									// Save configuration to file
 	}
-	
+
 	// FREQ; Handle Frequency  Settings
 	if (strcmp(cmd, "FREQ")==0) {
 		uint8_t nf = sizeof(freqs)/sizeof(int);						// Number of elements in array
-		
+
 		// Compute frequency index
 		if (atoi(arg) == 1) {
 			if (ifreq==(nf-1)) ifreq=0; else ifreq++;
@@ -176,30 +176,30 @@ static void setVariables(const char *cmd, const char *arg) {
 	}
 
 	//if (strcmp(cmd, "GETTIME")==0) { Serial.println(F("gettime tbd")); }	// Get the local time
-	
+
 	//if (strcmp(cmd, "SETTIME")==0) { Serial.println(F("settime tbd")); }	// Set the local time
-	
+
 	if (strcmp(cmd, "HELP")==0)    { Serial.println(F("Display Help Topics")); }
-	
+
 #if GATEWAYNODE==1
 	if (strcmp(cmd, "NODE")==0) {									// Set node on=1 or off=0
 		gwayConfig.node =(bool)atoi(arg);
 		writeGwayCfg(CONFIGFILE);									// Save configuration to file
 	}
-	
-	if (strcmp(cmd, "FCNT")==0)   { 
-		frameCount=0; 
+
+	if (strcmp(cmd, "FCNT")==0)   {
+		frameCount=0;
 		rxLoraModem();												// Reset the radion with the new frequency
 		writeGwayCfg(CONFIGFILE);
 	}
 #endif
 
 
-	
+
 #if WIFIMANAGER==1
-	if (strcmp(cmd, "NEWSSID")==0) { 
+	if (strcmp(cmd, "NEWSSID")==0) {
 		WiFiManager wifiManager;
-		strcpy(wpa[0].login,""); 
+		strcpy(wpa[0].login,"");
 		strcpy(wpa[0].passw,"");
 		WiFi.disconnect();
 		wifiManager.autoConnect(AP_NAME, AP_PASSWD );
@@ -235,14 +235,14 @@ static void openWebPage()
 #if A_REFRESH==1
 	//server.client().stop();							// Experimental, stop webserver in case something is still running!
 #endif
-	String response="";	
+	String response="";
 
 	server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
 	server.sendHeader("Pragma", "no-cache");
 	server.sendHeader("Expires", "-1");
-	
+
 	// init webserver, fill the webpage
-	// NOTE: The page is renewed every _WWW_INTERVAL seconds, please adjust in ESP-sc-gway.h
+	// NOTE: The page is renewed every _WWW_INTERVAL seconds, please adjust in config.h
 	//
 	server.setContentLength(CONTENT_LENGTH_UNKNOWN);
 	server.send(200, "text/html", "");
@@ -265,11 +265,11 @@ static void openWebPage()
 	response += ".cell {border: 1px solid black;}";
 	response += ".config_table {max_width:100%; min-width:400px; width:95%; border:1px solid black; border-collapse:collapse;}";
 	response += "</style></HEAD><BODY>";
-	
+
 	response +="<h1>ESP Gateway Config</h1>";
 
 	response +="Version: "; response+=VERSION;
-	response +="<br>ESP alive since "; 
+	response +="<br>ESP alive since ";
 	stringTime(1, response);
 
 	response +=", Uptime: ";
@@ -285,11 +285,11 @@ static void openWebPage()
 	response += String() + _minute + ":";
 	if (_second < 10) response += "0";
 	response += String() + _second;
-	
-	response +="<br>Current time    "; 
-	stringTime(millis(), response); 
+
+	response +="<br>Current time    ";
+	stringTime(millis(), response);
 	response +="<br>";
-	
+
 	server.sendContent(response);
 }
 
@@ -299,20 +299,20 @@ static void openWebPage()
 //
 //
 // ----------------------------------------------------------------------------
-static void configData() 
+static void configData()
 {
 	String response="";
 	String bg="";
-	
+
 	response +="<h2>Gateway Settings</h2>";
-	
+
 	response +="<table class=\"config_table\">";
 	response +="<tr>";
 	response +="<th class=\"thead\">Setting</th>";
 	response +="<th style=\"background-color: green; color: white; width:120px;\">Value</th>";
 	response +="<th colspan=\"2\" style=\"background-color: green; color: white; width:100px;\">Set</th>";
 	response +="</tr>";
-	
+
 #if GATEWAYMGT==1
 	bg = " background-color: ";
 	bg += ( (_cad == 1) ? "LightGreen" : "orange" );
@@ -322,7 +322,7 @@ static void configData()
 	response +="<td style=\"border: 1px solid black; width:40px;\"><a href=\"CAD=1\"><button>ON</button></a></td>";
 	response +="<td style=\"border: 1px solid black; width:40px;\"><a href=\"CAD=0\"><button>OFF</button></a></td>";
 	response +="</tr>";
-	
+
 	bg = " background-color: ";
 	bg += ( (_hop == 1) ? "LightGreen" : "orange" );
 	response +="<tr><td class=\"cell\">HOP</td>";
@@ -331,7 +331,7 @@ static void configData()
 	response +="<td style=\"border: 1px solid black; width:40px;\"><a href=\"HOP=1\"><button>ON</button></a></td>";
 	response +="<td style=\"border: 1px solid black; width:40px;\"><a href=\"HOP=0\"><button>OFF</button></a></td>";
 	response +="</tr>";
-	
+
 	response +="<tr><td class=\"cell\">SF Setting</td><td class=\"cell\">";
 	if (_cad == 1) {
 		response += "AUTO</td>";
@@ -342,15 +342,15 @@ static void configData()
 		response +="<td class=\"cell\"><a href=\"SF=1\"><button>+</button></a></td>";
 	}
 	response +="</tr>";
-	
+
 	// Channel
 	response +="<tr><td class=\"cell\">Channel</td>";
-	response +="<td class=\"cell\">"; 
+	response +="<td class=\"cell\">";
 	if (_hop == 1) {
 		response += "AUTO</td>";
 	}
 	else {
-		response += String() + ifreq; 
+		response += String() + ifreq;
 		response +="</td>";
 		response +="<td class=\"cell\"><a href=\"FREQ=-1\"><button>-</button></a></td>";
 		response +="<td class=\"cell\"><a href=\"FREQ=1\"><button>+</button></a></td>";
@@ -358,15 +358,15 @@ static void configData()
 	response +="</tr>";
 #endif
 
-	// Debugging options	
+	// Debugging options
 	response +="<tr><td class=\"cell\">";
-	response +="Debug level</td><td class=\"cell\">"; 
-	response +=debug; 
+	response +="Debug level</td><td class=\"cell\">";
+	response +=debug;
 	response +="</td>";
 	response +="<td class=\"cell\"><a href=\"DEBUG=-1\"><button>-</button></a></td>";
 	response +="<td class=\"cell\"><a href=\"DEBUG=1\"><button>+</button></a></td>";
 	response +="</tr>";
-	
+
 #if GATEWAYNODE==1
 	response +="<tr><td class=\"cell\">Framecounter Internal Sensor</td>";
 	response +="<td class=\"cell\">";
@@ -374,7 +374,7 @@ static void configData()
 	response +="</td><td colspan=\"2\" style=\"border: 1px solid black;\">";
 	response +="<button><a href=\"/FCNT\">RESET</a></button></td>";
 	response +="</tr>";
-	
+
 	bg = " background-color: ";
 	bg += ( (gwayConfig.node == 1) ? "LightGreen" : "orange" );
 	response +="<tr><td class=\"cell\">Gateway Node</td>";
@@ -407,18 +407,18 @@ static void configData()
 	response +="<tr><td class=\"cell\">Statistics</td>";
 	response +=String() + "<td class=\"cell\">"+statc.resets+"</td>";
 	response +="<td colspan=\"2\" class=\"cell\"><a href=\"/RESET\"><button>RESET</button></a></td></tr>";
-	
+
 	response +="<tr><td class=\"cell\">Boots and Resets</td>";
 	response +=String() + "<td class=\"cell\">"+gwayConfig.boots+"</td>";
 	response +="<td colspan=\"2\" class=\"cell\"><a href=\"/BOOT\"><button>RESET</button></a></td></tr>";
 #endif
 	response +="</table>";
-	
+
 	// Update Firmware all statistics
 	response +="<tr><td class=\"cell\">Update Firmware</td>";
 	response +="<td class=\"cell\"></td><td colspan=\"2\" class=\"cell\"><a href=\"/UPDATE=1\"><button>RESET</button></a></td></tr>";
 	response +="</table>";
-	
+
 	server.sendContent(response);
 }
 
@@ -433,16 +433,16 @@ static void interruptData()
 {
 	if (debug >= 2) {
 		String response="";
-		
+
 		response +="<h2>System State and Interrupt</h2>";
-		
+
 		response +="<table class=\"config_table\">";
 		response +="<tr>";
 		response +="<th class=\"thead\">Parameter</th>";
 		response +="<th class=\"thead\">Value</th>";
 		response +="<th colspan=\"2\"  class=\"thead\">Set</th>";
 		response +="</tr>";
-		
+
 		response +="<tr><td class=\"cell\">_state</td>";
 		response +="<td class=\"cell\">";
 		switch (_state) {							// See loraModem.h
@@ -461,41 +461,41 @@ static void interruptData()
 		if (flags <16) response += "0";
 		response+=String(flags,HEX); response+="</td></tr>";
 
-		
+
 		response +="<tr><td class=\"cell\">mask (8 bits)</td>";
-		response +="<td class=\"cell\">0x"; 
+		response +="<td class=\"cell\">0x";
 		if (mask <16) response += "0";
 		response+=String(mask,HEX); response+="</td></tr>";
-		
+
 		response +="<tr><td class=\"cell\">REENTRANT</td>";
-		response +="<td class=\"cell\">"; 
+		response +="<td class=\"cell\">";
 		response += (REENTRANT==1 ? "SAFE" : (REENTRANT==2 ? "ON" : "OFF" ));
 		response+="</td></tr>";
-		
+
 		response +="<tr><td class=\"cell\">Re-entrant cntr</td>";
-		response +="<td class=\"cell\">"; 
+		response +="<td class=\"cell\">";
 		response += String() + gwayConfig.reents;
 		response+="</td></tr>";
 
 		response +="<tr><td class=\"cell\">ntp call cntr</td>";
-		response +="<td class=\"cell\">"; 
+		response +="<td class=\"cell\">";
 		response += String() + gwayConfig.ntps;
 		response+="</td></tr>";
-		
+
 		response +="<tr><td class=\"cell\">ntpErr cntr</td>";
-		response +="<td class=\"cell\">"; 
+		response +="<td class=\"cell\">";
 		response += String() + gwayConfig.ntpErr;
 		response+="</td></tr>";
-		
-		response +="<tr><td class=\"cell\">Timing Correction (uSec)</td><td class=\"cell\">"; 
-		response += txDelay; 
+
+		response +="<tr><td class=\"cell\">Timing Correction (uSec)</td><td class=\"cell\">";
+		response += txDelay;
 		response +="</td>";
 		response +="<td class=\"cell\"><a href=\"DELAY=-1\"><button>-</button></a></td>";
 		response +="<td class=\"cell\"><a href=\"DELAY=1\"><button>+</button></a></td>";
 		response +="</tr>";
-		
+
 		response +="</table>";
-		
+
 		server.sendContent(response);
 	}// if debug>=2
 }
@@ -510,7 +510,7 @@ static void statisticsData()
 	String response="";
 
 	response +="<h2>Package Statistics</h2>";
-	
+
 	response +="<table class=\"config_table\">";
 	response +="<tr>";
 	response +="<th class=\"thead\">Counter</th>";
@@ -520,7 +520,7 @@ static void statisticsData()
 		response +=cp_nb_rx_rcv; response+="</tr>";
 	response +="<tr><td class=\"cell\">Packages Uplink OK </td><td class=\"cell\">";
 		response +=cp_nb_rx_ok; response+="</tr>";
-	response +="<tr><td class=\"cell\">Packages Downlink</td><td class=\"cell\">"; 
+	response +="<tr><td class=\"cell\">Packages Downlink</td><td class=\"cell\">";
 		response +=cp_up_pkt_fwd; response+="</tr>";
 
 #if STATISTICS >= 2
@@ -548,11 +548,11 @@ static void statisticsData()
 // Returns:
 //	- <none>
 // ----------------------------------------------------------------------------
-static void sensorData() 
+static void sensorData()
 {
 #if STATISTICS >= 1
 	String response="";
-	
+
 	response += "<h2>Message History</h2>";
 	response += "<table class=\"config_table\">";
 	response += "<tr>";
@@ -567,9 +567,9 @@ static void sensorData()
 
 	for (int i=0; i<MAX_STAT; i++) {
 		if (statr[i].sf == 0) break;
-		
+
 		response = "";
-		
+
 		response += String() + "<tr><td class=\"cell\">";
 		stringTime(statr[i].tmst, response);
 		response += "</td>";
@@ -581,12 +581,12 @@ static void sensorData()
 		response += String() + "<td class=\"cell\">" + statr[i].sf + "</td>";
 		response += String() + "<td class=\"cell\">" + statr[i].rssi + "</td>";
 		response += String() + "<td class=\"cell\">" + statr[i].prssi + "</td></tr>";
-		
+
 		server.sendContent(response);
 	}
-	
+
 	server.sendContent("</table>");
-	
+
 #endif
 }
 
@@ -598,28 +598,28 @@ static void systemData()
 {
 	String response="";
 	response +="<h2>System Status</h2>";
-	
+
 	response +="<table class=\"config_table\">";
 	response +="<tr>";
 	response +="<th class=\"thead\">Parameter</th>";
 	response +="<th class=\"thead\">Value</th>";
 	response +="</tr>";
-	
+
 	response +="<tr><td style=\"border: 1px solid black; width:120px;\">Gateway ID</td>";
-	response +="<td class=\"cell\">";	
+	response +="<td class=\"cell\">";
 	  if (MAC_array[0]< 0x10) response +='0'; response +=String(MAC_array[0],HEX);	// The MAC array is always returned in lowercase
 	  if (MAC_array[1]< 0x10) response +='0'; response +=String(MAC_array[1],HEX);
 	  if (MAC_array[2]< 0x10) response +='0'; response +=String(MAC_array[2],HEX);
-	  response +="FFFF"; 
+	  response +="FFFF";
 	  if (MAC_array[3]< 0x10) response +='0'; response +=String(MAC_array[3],HEX);
 	  if (MAC_array[4]< 0x10) response +='0'; response +=String(MAC_array[4],HEX);
 	  if (MAC_array[5]< 0x10) response +='0'; response +=String(MAC_array[5],HEX);
 	response+="</tr>";
-	
+
 	response +="<tr><td class=\"cell\">Free heap</td><td class=\"cell\">"; response+=ESP.getFreeHeap(); response+="</tr>";
-	
+
 	response +="<tr><td class=\"cell\">ESP Chip ID</td><td class=\"cell\">"; response+=ESP.getChipId(); response+="</tr>";
-	
+
 #if STATISTICS>=1
 	response +="<tr><td class=\"cell\">WiFi Setups</td><td class=\"cell\">"; response+=gwayConfig.wifis; response+="</tr>";
 	response +="<tr><td class=\"cell\">WWW Views</td><td class=\"cell\">"; response+=gwayConfig.views; response+="</tr>";
@@ -643,28 +643,28 @@ static void wifiData()
 	response +="<table class=\"config_table\">";
 
 	response +="<tr><th class=\"thead\">Parameter</th><th class=\"thead\">Value</th></tr>";
-	
-	response +="<tr><td class=\"cell\">WiFi host</td><td class=\"cell\">"; 
+
+	response +="<tr><td class=\"cell\">WiFi host</td><td class=\"cell\">";
 	response +=wifi_station_get_hostname(); response+="</tr>";
 
-	response +="<tr><td class=\"cell\">WiFi SSID</td><td class=\"cell\">"; 
+	response +="<tr><td class=\"cell\">WiFi SSID</td><td class=\"cell\">";
 	response +=WiFi.SSID(); response+="</tr>";
-	
-	response +="<tr><td class=\"cell\">IP Address</td><td class=\"cell\">"; 
-	printIP((IPAddress)WiFi.localIP(),'.',response); 
+
+	response +="<tr><td class=\"cell\">IP Address</td><td class=\"cell\">";
+	printIP((IPAddress)WiFi.localIP(),'.',response);
 	response +="</tr>";
-	response +="<tr><td class=\"cell\">IP Gateway</td><td class=\"cell\">"; 
-	printIP((IPAddress)WiFi.gatewayIP(),'.',response); 
+	response +="<tr><td class=\"cell\">IP Gateway</td><td class=\"cell\">";
+	printIP((IPAddress)WiFi.gatewayIP(),'.',response);
 	response +="</tr>";
 	response +="<tr><td class=\"cell\">NTP Server</td><td class=\"cell\">"; response+=NTP_TIMESERVER; response+="</tr>";
 	response +="<tr><td class=\"cell\">LoRa Router</td><td class=\"cell\">"; response+=_TTNSERVER; response+="</tr>";
-	response +="<tr><td class=\"cell\">LoRa Router IP</td><td class=\"cell\">"; 
-	printIP((IPAddress)ttnServer,'.',response); 
+	response +="<tr><td class=\"cell\">LoRa Router IP</td><td class=\"cell\">";
+	printIP((IPAddress)ttnServer,'.',response);
 	response +="</tr>";
 #ifdef _THINGSERVER
-	response +="<tr><td class=\"cell\">LoRa Router 2</td><td class=\"cell\">"; response+=_THINGSERVER; 
+	response +="<tr><td class=\"cell\">LoRa Router 2</td><td class=\"cell\">"; response+=_THINGSERVER;
 	response += String() + ":" + _THINGPORT + "</tr>";
-	response +="<tr><td class=\"cell\">LoRa Router 2 IP</td><td class=\"cell\">"; 
+	response +="<tr><td class=\"cell\">LoRa Router 2 IP</td><td class=\"cell\">";
 	printIP((IPAddress)thingServer,'.',response);
 	response +="</tr>";
 #endif
@@ -675,8 +675,8 @@ static void wifiData()
 
 
 // ----------------------------------------------------------------------------
-// SEND WEB PAGE() 
-// Call the webserver and send the standard content and the content that is 
+// SEND WEB PAGE()
+// Call the webserver and send the standard content and the content that is
 // passed by the parameter.
 //
 // NOTE: This is the only place where yield() or delay() calls are used.
@@ -685,31 +685,31 @@ static void wifiData()
 void sendWebPage(const char *cmd, const char *arg)
 {
 	openWebPage(); yield();
-	
+
 	setVariables(cmd,arg); yield();
 
 	statisticsData(); yield();		 			// Node statistics
 	sensorData(); yield();						// Display the sensor history, message statistics
 	systemData(); yield();						// System statistics such as heap etc.
 	wifiData(); yield();						// WiFI specific parameters
-	
+
 	configData(); yield();						// Display web configuration
-	
+
 	interruptData(); yield();					// Display interrupts only when debug >= 2
-		
+
 	// Close the client connection to server
 	server.sendContent(String() + "<br><br />Click <a href=\"/HELP\">here</a> to explain Help and REST options<br>");
 	server.sendContent(String() + "</BODY></HTML>");
-	
+
 	server.sendContent(""); yield();
-	
+
 	server.client().stop();
 }
 
 // ----------------------------------------------------------------------------
 // Used by timeout functions
 // This function only displays the standard homepage
-//	Note: This function is not actively used, as the page is renewed 
+//	Note: This function is not actively used, as the page is renewed
 //	by using a HTML meta setting of 60 seconds
 // ----------------------------------------------------------------------------
 static void renewWebPage()
@@ -725,27 +725,27 @@ static void renewWebPage()
 // for messages sent to the webserver
 //
 // ----------------------------------------------------------------------------
-void setupWWW() 
+void setupWWW()
 {
 	server.begin();									// Start the webserver
-	
+
 	// -----------------
 	// BUTTONS, define what should happen with the buttons we press on the homepage
-	
+
 	server.on("/", []() {
 		sendWebPage("","");							// Send the webPage string
 		server.sendHeader("Location", String("/"), true);
 		server.send ( 302, "text/plain", "");
 	});
 
-	
+
 	server.on("/HELP", []() {
 		sendWebPage("HELP","");					// Send the webPage string
 		server.sendHeader("Location", String("/"), true);
 		server.send ( 302, "text/plain", "");
 	});
 
-	
+
 	// Reset the statistics
 	server.on("/RESET", []() {
 		Serial.println(F("RESET"));
@@ -761,7 +761,7 @@ void setupWWW()
 		statc.sf10= 0;
 		statc.sf11= 0;
 		statc.sf12= 0;
-		
+
 		statc.resets= 0;
 		writeGwayCfg(CONFIGFILE);
 #endif
@@ -770,7 +770,7 @@ void setupWWW()
 		server.send ( 302, "text/plain", "");
 	});
 
-	
+
 	// Reset the boot counter
 	server.on("/BOOT", []() {
 		Serial.println(F("BOOT"));
@@ -797,7 +797,7 @@ void setupWWW()
 
 
 	// Set debug parameter
-	server.on("/DEBUG=-1", []() {				// Set debug level 0-2						
+	server.on("/DEBUG=-1", []() {				// Set debug level 0-2
 		debug = (debug+3)%4;
 		writeGwayCfg(CONFIGFILE);				// Save configuration to file
 		server.sendHeader("Location", String("/"), true);
@@ -810,7 +810,7 @@ void setupWWW()
 		server.send ( 302, "text/plain", "");
 	});
 
-	
+
 	// Set delay in microseconds
 	server.on("/DELAY=1", []() {
 		txDelay+=1000;
@@ -823,7 +823,7 @@ void setupWWW()
 		server.send ( 302, "text/plain", "");
 	});
 
-	
+
 	// Spreading Factor setting
 	server.on("/SF=1", []() {
 		if (sf==SF12) sf=SF7; else sf= (sf_t)((int)sf+1);
@@ -836,7 +836,7 @@ void setupWWW()
 		server.send ( 302, "text/plain", "");
 	});
 
-	
+
 	// Frequency of the GateWay node
 	server.on("/FREQ=1", []() {
 		uint8_t nf = sizeof(freqs)/sizeof(int);	// Number of elements in array
@@ -851,7 +851,7 @@ void setupWWW()
 		server.send ( 302, "text/plain", "");
 	});
 
-	
+
 	// Set CAD function off/on
 	server.on("/CAD=1", []() {
 		_cad=(bool)1;
@@ -866,7 +866,7 @@ void setupWWW()
 		server.send ( 302, "text/plain", "");
 	});
 
-	
+
 	// GatewayNode
 	server.on("/NODE=1", []() {
 #if GATEWAYNODE==1
@@ -884,12 +884,12 @@ void setupWWW()
 		server.sendHeader("Location", String("/"), true);
 		server.send ( 302, "text/plain", "");
 	});
-	
-	
+
+
 	// Framecounter of the Gateway node
 	server.on("/FCNT", []() {
 #if GATEWAYNODE==1
-		frameCount=0; 
+		frameCount=0;
 		rxLoraModem();							// Reset the radion with the new frequency
 		writeGwayCfg(CONFIGFILE);
 #endif
@@ -904,7 +904,7 @@ void setupWWW()
 #if A_REFRESH==1
 		gwayConfig.refresh =1;
 		writeGwayCfg(CONFIGFILE);				// Save configuration to file
-#endif		
+#endif
 		server.sendHeader("Location", String("/"), true);
 		server.send ( 302, "text/plain", "");
 	});
@@ -917,7 +917,7 @@ void setupWWW()
 		server.send ( 302, "text/plain", "");
 	});
 
-	
+
 	// Switch off/on the HOP functions
 	server.on("/HOP=1", []() {
 		_hop=(bool)1;
@@ -931,7 +931,7 @@ void setupWWW()
 		server.send ( 302, "text/plain", "");
 	});
 
-	
+
 	// Update the sketch. Not yet implemented
 	server.on("/UPDATE=1", []() {
 #if A_OTAA==1
@@ -941,20 +941,19 @@ void setupWWW()
 		server.send ( 302, "text/plain", "");
 	});
 
-	
+
 	// -----------
 	// This section from version 4.0.7 defines what PART of the
 	// webpage is shown based on the buttons pressed by the user
 	// Maybe not all information wshould be put on the screen since it
 	// may take too much time to serve all information before a next
 	// package interrupt arrives at tyhe gateway
-	
-	
-	
+
+
+
 	Serial.print(F("WWW Server started on port "));
 	Serial.println(A_SERVERPORT);
 	return;
 }
 
 #endif
-
