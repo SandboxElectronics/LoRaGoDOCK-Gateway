@@ -51,9 +51,9 @@ configured further using the webpage.
 2. Install depending libraries. Check "Dependencies" section below.
 3. Install ESP8266 board from with Boards Manager if necessary.
 4. Select Board and related settings:
- \#Board        : "SparkFun ESP8266 Thing Dev"
- \#CPU Frequency: "80 MHz"
- \#Upload Speed : "115200"
+ - Board        : "SparkFun ESP8266 Thing Dev"
+ - CPU Frequency: "80 MHz"
+ - Upload Speed : "115200"
 5. Connect the gateway to a serial port of your computer, and configure that port in the IDE.
 6. Edit the config.h file and adapt the "wpas" structure. `Make sure that the first line of this structure
 remains empty and put the SSID and Password of your router on the second line of the array.
@@ -93,7 +93,7 @@ If the heap drops below 18 KBytes some functions may not behave as expected (in 
 The user can set the initial value of the DEBUG parameter.
 Setting this parameter will also detemine some settings of the webserver.
 
- \#define DEBUG 1
+`#define DEBUG 1`
 
 
 ### Setting Spreading Factor
@@ -102,7 +102,7 @@ Set the _SPREADING factor to the desired SF7, SF8 - SF12 value.
 Please note that this value is closely related to teh value used for _CAD.
 If _CAD is enabled, the value of _SPREADING is not used by the gateway as it has all sreading factors enabled.
 
- \#define _SPREADING SF9
+`#define _SPREADING SF9`
 
 Please note that the default frequency used is 868.1 MHz which can be changed in the loraModem.h file.
 The user is advised NOT to change this etting and only use the default 868.1 MHz frequency.
@@ -122,7 +122,7 @@ the CAD function will use the RSSI register setting of the chip to determine whe
 signal (or just noise). As a result, very weak signals are not received which means that the range of the
 gateway will be reduced in CAD mode.
 
- \#define _CAD 1
+`#define _CAD 1`
 
 
 ### Over the Air Updates (OTA)
@@ -140,7 +140,7 @@ gateway to use mDNS to resolve the gateway ID set by OTA after which download po
 
 Todo: The OTA software has not (yet) been tested in conjuction with the WiFiManager software.
 
- \#define A_OTA 1  
+`#define A_OTA 1`
 
 
 
