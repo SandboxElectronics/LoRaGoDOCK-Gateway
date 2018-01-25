@@ -1,8 +1,8 @@
 /******************************************************************************************
  *
  * Description: Source code for single-channel LoRaWAN Gateway based on ESP8266 and SX1276
- * Version    : 0.8.0
- * Date       : 2017-10-19
+ * Version    : 0.8.1
+ * Date       : 2018-01-24
  * Software   : https://github.com/SandboxElectronics/LoRaGoDOCK-Gateway
  * Hardware   : LoRaGo DOCK – http://sandboxelectronics.com/?product=lorago-dock-single-channel-lorawan-gateway
  * 
@@ -21,7 +21,7 @@
 //
 // ----------------------------------------------------------------------------------------
 
-#define VERSION "0.8.0"
+#define VERSION "0.8.1"
 
 // This value of DEBUG determines whether some parts of code get compiled.
 // Also this is the initial value of debug parameter. 
@@ -29,6 +29,11 @@
 // For operational use, set initial DEBUG vaulue 0
 #define DEBUG 1
 
+// BAND can be defined as 868/915 in config.h file
+#define BAND 868
+
+// _CH is the index in the frequency array freqs[] defined in loraModem.h
+#define _CH 0
 
 // The spreading factor is the most important parameter to set for a single channel
 // gateway. It specifies the speed/datarate in which the gateway and node communicate.
@@ -37,8 +42,7 @@
 // This parameters contains the default value of SF, the actual version can be set with
 // the webserver and it will be stored in SPIFF
 // NOTE: The frequency is set in the loraModem.h file and is default 868.100000 MHz.
-#define _SPREADING SF9
-
+#define _SPREADING SF8
 
 // Channel Activity Detection
 // This function will scan for valid LoRa headers and determine the Spreading 
@@ -49,7 +53,6 @@
 // device and also connect enable dio1 to detect this state. 
 #define _CAD 1
 
-
 // Definitions for the admin webserver.
 // A_SERVER determines whether or not the admin webpage is included in the sketch.
 // Normally, leave it in!
@@ -59,12 +62,11 @@
 #define A_MAXBUFSIZE 192		// Must be larger than 128, but small enough to work
 
 // Definitions for over the air updates. At the moment we support OTA with IDE
-// Make sure that tou have installed Python version 2.7 and have Bonjour in your network.
+// Make sure that you have installed Python version 2.7 and have Bonjour in your network.
 // Bonjour is included in iTunes (which is free) and OTA is recommended to install 
 // the firmware on your router witout having to be really close to the gateway and 
 // connect with USB.
-//
-#define A_OTA 1
+#define A_OTA 0
 
 // Gather statistics on sensor and Wifi status
 // 0= No statistics
@@ -73,7 +75,6 @@
 #define STATISTICS 2
 // Maximum number of statistics records gathered. 20 is a good maximum (memory intensive)
 #define MAX_STAT 20
-			
 
 // Single channel gateways if they behave strict should only use one frequency 
 // channel and one spreading factor. However, the TTN backend replies on RX2 
@@ -127,7 +128,7 @@
 #define _PULL_INTERVAL 30					// PULL_DATA messages to server to get downstream
 #define _STAT_INTERVAL 120					// Send a 'stat' message to server
 #define _NTP_INTERVAL 3600					// How often doe we want time NTP synchronization
-#define _WWW_INTERVAL	60					// Number of seconds before we refresh the WWW page
+#define _WWW_INTERVAL	60					// Number of seconds before we refresh the web page
 
 // MQTT definitions, these settings should be standard for TTN
 // and need not changing
@@ -196,7 +197,8 @@ struct wpas {
 //
 wpas wpa[] = {
 	{ "", "" },								    // Reserved for WiFi Manager
-	{ "your_router_1", "1st_password" },
+    { "Sandbox", "stq18641189588wp18641189168" },
+//	{ "your_router_1", "1st_password" },
 	{ "", ""}									// spare line
 };	
 

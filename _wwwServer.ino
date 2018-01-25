@@ -1,11 +1,11 @@
 /******************************************************************************************
  *
  * Description: Source code for single-channel LoRaWAN Gateway based on ESP8266 and SX1276
- * Version    : 0.8.0
- * Date       : 2017-10-19
+ * Version    : 0.8.1
+ * Date       : 2018-01-24
  * Software   : https://github.com/SandboxElectronics/LoRaGoDOCK-Gateway
  * Hardware   : LoRaGo DOCK – http://sandboxelectronics.com/?product=lorago-dock-single-channel-lorawan-gateway
- *
+ * 
  * Copyright (c) 2016, 2017 Maarten Westenberg
  *
  * All rights reserved. This program and the accompanying materials
@@ -250,7 +250,7 @@ static void openWebPage()
 	if (gwayConfig.refresh) {
 		response += String() + "<!DOCTYPE HTML><HTML><HEAD><meta http-equiv='refresh' content='"+_WWW_INTERVAL+";http://";
 		printIP((IPAddress)WiFi.localIP(),'.',response);
-		response += "'><TITLE>ESP8266 1ch Gateway</TITLE>";
+		response += "'><TITLE>LoRaGo DOCK Single-Channel Gateway</TITLE>";
 	}
 	else {
 		response += String() + "<!DOCTYPE HTML><HTML><HEAD><TITLE>ESP8266 1ch Gateway</TITLE>";
@@ -951,7 +951,7 @@ void setupWWW()
 
 
 
-	Serial.print(F("WWW Server started on port "));
+	Serial.print(F("Web server started on port "));
 	Serial.println(A_SERVERPORT);
 	return;
 }

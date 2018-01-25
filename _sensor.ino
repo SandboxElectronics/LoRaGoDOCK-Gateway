@@ -1,11 +1,11 @@
 /******************************************************************************************
  *
  * Description: Source code for single-channel LoRaWAN Gateway based on ESP8266 and SX1276
- * Version    : 0.8.0
- * Date       : 2017-10-19
+ * Version    : 0.8.1
+ * Date       : 2018-01-24
  * Software   : https://github.com/SandboxElectronics/LoRaGoDOCK-Gateway
  * Hardware   : LoRaGo DOCK – http://sandboxelectronics.com/?product=lorago-dock-single-channel-lorawan-gateway
- *
+ * 
  * Copyright (c) 2016, 2017 Maarten Westenberg
  *
  * All rights reserved. This program and the accompanying materials

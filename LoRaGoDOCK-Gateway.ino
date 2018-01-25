@@ -1,11 +1,11 @@
 /******************************************************************************************
  *
  * Description: Source code for single-channel LoRaWAN Gateway based on ESP8266 and SX1276
- * Version    : 0.8.0
- * Date       : 2017-10-19
+ * Version    : 0.8.1
+ * Date       : 2018-01-24
  * Software   : https://github.com/SandboxElectronics/LoRaGoDOCK-Gateway
  * Hardware   : LoRaGo DOCK – http://sandboxelectronics.com/?product=lorago-dock-single-channel-lorawan-gateway
- *
+ * 
  * Copyright (c) 2016, 2017 Maarten Westenberg
  *
  * All rights reserved. This program and the accompanying materials
@@ -90,7 +90,6 @@ uint32_t cp_nb_rx_nocrc;
 uint32_t cp_up_pkt_fwd;
 
 uint8_t MAC_array[6];
-char MAC_char[19];
 
 // ----------------------------------------------------------------------------
 //
@@ -364,20 +363,21 @@ IPAddress getDnsIP() {
 }
 
 // ----------------------------------------------------------------------------
-// config.txt is a text file that contains lines(!) with WPA configuration items
-// Each line contains an KEY vaue pair describing the gateway configuration
-//
+// Prepare the Config Parameters
 // ----------------------------------------------------------------------------
 int WlanReadWpa() {
-
-	readConfig( CONFIGFILE, &gwayConfig);
-
-	if (gwayConfig.sf != (uint8_t) 0) sf = (sf_t) gwayConfig.sf;
-	ifreq = gwayConfig.ch;
-	debug = gwayConfig.debug;
-	_cad = gwayConfig.cad;
-	_hop = gwayConfig.hop;
-	gwayConfig.boots++;							// Every boot of the system we increase the reset
+    readConfig( CONFIGFILE, &gwayConfig);
+    
+    if (gwayConfig.sf != (uint8_t)0) {
+        sf = (sf_t) gwayConfig.sf;
+    }
+    
+    ifreq = gwayConfig.ch;
+    freq  = freqs[ifreq];
+    debug = gwayConfig.debug;
+    _cad  = gwayConfig.cad;
+    _hop  = gwayConfig.hop;
+    gwayConfig.boots++;							// Every boot of the system we increase the reset
 
 #if GATEWAYNODE==1
 	if (gwayConfig.fcnt != (uint8_t) 0) frameCount = gwayConfig.fcnt+10;
@@ -386,7 +386,6 @@ int WlanReadWpa() {
 #if WIFIMANAGER > 0
 	String ssid=gwayConfig.ssid;
 	String pass=gwayConfig.pass;
-
 
 	char ssidBuf[ssid.length()+1];
 	ssid.toCharArray(ssidBuf,ssid.length()+1);
@@ -444,7 +443,7 @@ int WlanConnect() {
 #endif
   unsigned char agains = 0;
   unsigned char wpa_index = (WIFIMANAGER >0 ? 0 : 1);	// Skip over first record for WiFiManager
-  Serial.print(F("WlanConnect:: wpa_index=")); Serial.println(wpa_index);
+//  Serial.print(F("WlanConnect:: wpa_index=")); Serial.println(wpa_index);
 
   while (WiFi.status() != WL_CONNECTED)
   {
@@ -453,7 +452,7 @@ int WlanConnect() {
 	char *ssid		= wpa[wpa_index].login;
 	char *password	= wpa[wpa_index].passw;
 
-	Serial.print(wpa_index); Serial.print(F(". WiFi connect to: ")); Serial.println(ssid);
+//	Serial.print(wpa_index); Serial.print(F(". WiFi connect to: ")); Serial.println(ssid);
 
 	WiFi.begin(ssid, password);
 
@@ -510,7 +509,9 @@ int WlanConnect() {
 #if STATISTICS>=1
   gwayConfig.wifis++;
 #endif
-  Serial.print(F("WiFi connected. local IP address: "));
+  Serial.print(F("WiFi connected to "));
+  Serial.println(WiFi.SSID());
+  Serial.print(F("IP Addr: "));
   Serial.println(WiFi.localIP());
   yield();
   return(0);
@@ -898,36 +899,15 @@ void sendstat() {
 }
 
 
-
-// ============================================================================
-// MAIN PROGRAM CODE (SETUP AND LOOP)
-
-
-// ----------------------------------------------------------------------------
-// Setup code (one time)
-// _state is S_INIT
-// ----------------------------------------------------------------------------
-void setup () {
-
-	Serial.begin(_BAUDRATE);						// As fast as possible for bus
+void setup() {
+	Serial.begin(_BAUDRATE);
+    Serial.flush();
+    Serial.println();
 	delay(100);
-	Serial.flush();
-	delay(500);
 
-	if (SPIFFS.begin()) Serial.println(F("SPIFFS loaded success"));
-
-	// The following section can normnally be left OFF. Only for those suffering
-	// from exception problems due to am erro in the WiFi code of the ESP8266
-#define WIFIBUG 0									// System no recovers from Wifi errors
-#if WIFIBUG==1
-	uint16_t s,res;
-	os_printf("Erasing sectors\n");
-	for (s=0x70;s<=0x7F; s++)
-	{
-		res = spi_flash_erase_sector(s);
-		os_printf("Sector erased 0x%02X. Res %d\n",s,res);
+	if (!SPIFFS.begin()) {
+	    Serial.println(F("Failed to load SPIFFS"));
 	}
-#endif
 
 #if OLED==1
 	// Initialising the UI will init the display too.
@@ -939,51 +919,38 @@ void setup () {
 	display.display();
 #endif
 
-	delay(500);
-	yield();
-
-	if (debug>=1) {
-		Serial.print(F("debug="));
-		Serial.println(debug);
-		yield();
-	}
-
 	WiFi.mode(WIFI_STA);
 	WlanReadWpa();								// Read the last Wifi settings from SPIFFS into memory
 
 	WiFi.macAddress(MAC_array);
-    for (int i = 0; i < sizeof(MAC_array); ++i){
-      sprintf(MAC_char,"%s%02x:",MAC_char,MAC_array[i]);
+    Serial.print(F("MAC Addr: "));
+    
+    for (int i=0; i<6; i++) {
+        printf("%02X", MAC_array[i]);
+
+        if (i<5) {
+            Serial.print("-");
+        } else {
+            Serial.println();  
+        }
     }
-	Serial.print("MAC: ");
-    Serial.println(MAC_char);
 
 	// We start by connecting to a WiFi network, set hostname
 	char hostname[12];
-	sprintf(hostname, "%s%02x%02x%02x", "esp8266-", MAC_array[3], MAC_array[4], MAC_array[5]);
+	sprintf(hostname, "LoRaGo-%02X%02X%02X", MAC_array[3], MAC_array[4], MAC_array[5]);
 
-	wifi_station_set_hostname( hostname );
+	wifi_station_set_hostname(hostname);
 
 	// Setup WiFi UDP connection. Give it some time ..
 	while (WlanConnect() < 0) {
-		Serial.print(F("Error Wifi network connect "));
-		Serial.println();
+		Serial.println(F("Error Wifi network connect "));
 		yield();
 	}
 
-	Serial.print(F("Host "));
-	Serial.print(wifi_station_get_hostname());
-	Serial.print(F(" WiFi Connected to "));
-	Serial.print(WiFi.SSID());
-	Serial.println();
-	delay(200);
-
-	// If we are here we are connected to WLAN
-	// So now test the UDP function
+	// Test the UDP function
 	if (!UDPconnect()) {
 		Serial.println(F("Error UDPconnect"));
 	}
-	delay(500);
 
 	// Pins are defined and set in loraModem.h
     pinMode(pins.ss, OUTPUT);
@@ -1034,7 +1001,7 @@ void setup () {
 	Serial.println();
 
 	writeGwayCfg( CONFIGFILE );
-	Serial.println(F("Gateway configuration saved"));
+//	Serial.println(F("Gateway configuration saved"));
 
 #if A_SERVER==1
 	// Setup the webserver
@@ -1107,7 +1074,6 @@ void loop ()
 
 	// Receive Lora messages waiting, if there are any.
 	// Most important function in loop()
-	//
 	if (_state == S_RXDONE) {
 		eventHandler();							// Is S_RXDONE read a message
 		yield();
@@ -1116,7 +1082,6 @@ void loop ()
 	// The next section is emergency only. If posible we hop() in the state machine.
 	// If hopping is enabled, and by lack of timer, we hop()
 	// XXX Experimental, 2.5 ms between hops max
-	//
 	nowTime = micros();
 	if ((_hop) && (((long)(nowTime - hopTime)) > 2500)) {
 		if ((_state == S_SCAN) && (sf==SF12)) {
@@ -1149,8 +1114,6 @@ void loop ()
 	// This is important since the TTN broker will return confirmation
 	// messages on UDP for every message sent by the gateway. So we have to consume them..
 	// As we do not know when the server will respond, we test in every loop.
-	//
-	//
 	while( (packetSize = Udp.parsePacket()) > 0) {		// Length of UDP message waiting
 		yield();
 		// Packet may be PKT_PUSH_ACK (0x01), PKT_PULL_ACK (0x03) or PKT_PULL_RESP (0x04)
@@ -1163,7 +1126,6 @@ void loop ()
 	yield();
 
 	// stat PUSH_DATA message (*2, par. 4)
-	//
 	nowseconds = (uint32_t) millis() /1000;
     if (nowseconds - stattime >= _STAT_INTERVAL) {		// Wake up every xx seconds
         sendstat();										// Show the status message and send to server
@@ -1185,7 +1147,6 @@ void loop ()
 	yield();
 
 	// send PULL_DATA message (*2, par. 4)
-	//
 	nowseconds = (uint32_t) millis() /1000;
     if (nowseconds - pulltime >= _PULL_INTERVAL) {		// Wake up every xx seconds
         pullData();										// Send PULL_DATA message to server
@@ -1218,5 +1179,4 @@ void loop ()
 		ntptimer = nowseconds;
 	}
 #endif
-
 }
