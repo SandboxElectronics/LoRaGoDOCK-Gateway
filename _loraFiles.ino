@@ -1,8 +1,8 @@
 /******************************************************************************************
  *
  * Description: Source code for single-channel LoRaWAN Gateway based on ESP8266 and SX1276
- * Version    : 0.8.1
- * Date       : 2018-01-24
+ * Version    : 0.8.0
+ * Date       : 2017-10-19
  * Software   : https://github.com/SandboxElectronics/LoRaGoDOCK-Gateway
  * Hardware   : LoRaGo DOCK – http://sandboxelectronics.com/?product=lorago-dock-single-channel-lorawan-gateway
  * 
@@ -36,104 +36,96 @@ String espDir(String s) {
 // Read the gateway configuration file
 // ----------------------------------------------------------------------------
 int readConfig(const char *fn, struct espGwayConfig *c) {
-	Serial.println(F("Load config..."));
+
+	Serial.println(F("readConfig:: Starting"));
 
 	if (!SPIFFS.exists(fn)) {
-		Serial.print("[WARNING]: Config file ");
-        Serial.print(fn);
-		Serial.println(" does not exist.");
-		return -1;
+		Serial.print("ERROR:: readConfig, file does not exist ");
+		Serial.println(fn);
+		return(-1);
 	}
-   
 	File f = SPIFFS.open(fn, "r");
-  
 	if (!f) {
-		Serial.print("[ERROR]: Failed to open config file ");
-        Serial.println(fn);
-		return -1;
+		Serial.println("ERROR:: readConfig, file open failed");
+		return(-1);
 	}
 
 	while (f.available()) {
-		String id  = f.readStringUntil('=');
-		String val = f.readStringUntil('\n');
+		
+		String id =f.readStringUntil('=');
+		String val=f.readStringUntil('\n');
 		
 		if (id == "SSID") {									// WiFi SSID
-//			Serial.print(F("SSID=")); Serial.println(val);
-			(*c).ssid = val;
+			Serial.print(F("SSID=")); Serial.println(val);
+			(*c).ssid = val;								// val contains ssid, we do NO check
 		}
 		if (id == "PASS") { 								// WiFi Password
-//			Serial.print(F("PASS=")); Serial.println(val); 
+			Serial.print(F("PASS=")); Serial.println(val); 
 			(*c).pass = val;
 		}
-//		if (id == "CH") { 									// Frequency Channel
-////			Serial.print(F("CH=")); Serial.println(val); 
-//			(*c).ch = (uint32_t) val.toInt();
-//		}
-//		if (id == "SF") { 									// Spreading Factor
-////			Serial.print(F("SF=")); Serial.println(val);
-//			(*c).sf = (uint32_t) val.toInt();
-//		}
+		if (id == "CH") { 									// Frequency Channel
+			Serial.print(F("CH=")); Serial.println(val); 
+			(*c).ch = (uint32_t) val.toInt();
+		}
+		if (id == "SF") { 									// Spreading Factor
+			Serial.print(F("SF  =")); Serial.println(val);
+			(*c).sf = (uint32_t) val.toInt();
+		}
 		if (id == "FCNT") {									// Frame Counter
-//			Serial.print(F("FCNT=")); Serial.println(val);
+			Serial.print(F("FCNT=")); Serial.println(val);
 			(*c).fcnt = (uint32_t) val.toInt();
 		}
-		if (id == "DEBUG") {								// Debug setting
-//			Serial.print(F("DEBUG=")); Serial.println(val);
+		if (id == "DEBUG") {								// Frame Counter
+			Serial.print(F("DEBUG=")); Serial.println(val);
 			(*c).debug = (uint8_t) val.toInt();
 		}
-//		if (id == "CAD") {									// CAD setting
-////			Serial.print(F("CAD=")); Serial.println(val);
-//			(*c).cad = (uint8_t) val.toInt();
-//		}
-//		if (id == "HOP") {									// HOP setting
-////			Serial.print(F("HOP=")); Serial.println(val);
-//			(*c).hop = (uint8_t) val.toInt();
-//		}
+		if (id == "CAD") {									// CAD setting
+			Serial.print(F("CAD=")); Serial.println(val);
+			(*c).cad = (uint8_t) val.toInt();
+		}
+		if (id == "HOP") {									// HOP setting
+			Serial.print(F("HOP=")); Serial.println(val);
+			(*c).hop = (uint8_t) val.toInt();
+		}
 		if (id == "BOOTS") {								// BOOTS setting
-//			Serial.print(F("BOOTS=")); Serial.println(val);
+			Serial.print(F("BOOTS=")); Serial.println(val);
 			(*c).boots = (uint8_t) val.toInt();
 		}
 		if (id == "RESETS") {								// RESET setting
-//			Serial.print(F("RESETS=")); Serial.println(val);
+			Serial.print(F("RESETS=")); Serial.println(val);
 			(*c).resets = (uint8_t) val.toInt();
 		}
 		if (id == "WIFIS") {								// WIFIS setting
-//			Serial.print(F("WIFIS=")); Serial.println(val);
+			Serial.print(F("WIFIS=")); Serial.println(val);
 			(*c).wifis = (uint8_t) val.toInt();
 		}
 		if (id == "VIEWS") {								// VIEWS setting
-//			Serial.print(F("VIEWS=")); Serial.println(val);
+			Serial.print(F("VIEWS=")); Serial.println(val);
 			(*c).views = (uint8_t) val.toInt();
 		}
 		if (id == "NODE") {									// NODE setting
-//			Serial.print(F("NODE=")); Serial.println(val);
+			Serial.print(F("NODE=")); Serial.println(val);
 			(*c).node = (uint8_t) val.toInt();
 		}
 		if (id == "REFR") {									// REFR setting
-//			Serial.print(F("REFR=")); Serial.println(val);
+			Serial.print(F("REFR=")); Serial.println(val);
 			(*c).refresh = (uint8_t) val.toInt();
 		}
 		if (id == "REENTS") {								// REENTS setting
-//			Serial.print(F("REENTS=")); Serial.println(val);
+			Serial.print(F("REENTS=")); Serial.println(val);
 			(*c).reents = (uint8_t) val.toInt();
 		}
 		if (id == "NTPERR") {								// NTPERR setting
-//			Serial.print(F("NTPERR=")); Serial.println(val);
+			Serial.print(F("NTPERR=")); Serial.println(val);
 			(*c).ntpErr = (uint8_t) val.toInt();
 		}
 		if (id == "NTPS") {									// NTPS setting
-//			Serial.print(F("NTPS=")); Serial.println(val);
+			Serial.print(F("NTPS=")); Serial.println(val);
 			(*c).ntps = (uint8_t) val.toInt();
 		}
 	}
-
-    c->cad = _CAD;
-    c->hop = 0;
-    c->ch  = _CH;
-    c->sf  = _SPREADING;
-   
 	f.close();
-	return 1;
+	return(1);
 }
 
 // ----------------------------------------------------------------------------

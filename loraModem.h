@@ -1,8 +1,8 @@
 /******************************************************************************************
  *
  * Description: Source code for single-channel LoRaWAN Gateway based on ESP8266 and SX1276
- * Version    : 0.8.1
- * Date       : 2018-01-24
+ * Version    : 0.8.0
+ * Date       : 2017-10-19
  * Software   : https://github.com/SandboxElectronics/LoRaGoDOCK-Gateway
  * Hardware   : LoRaGo DOCK – http://sandboxelectronics.com/?product=lorago-dock-single-channel-lorawan-gateway
  * 
@@ -28,39 +28,25 @@ long txDelay= 0x00;								// delay time on top of server TMST
 
 // Frequencies
 // Set center frequency. If in doubt, choose the first one, comment all others
-// Each "real" gateway should support the first 3 frequencies according to LoRaWAN spec.
+// Each "real" gateway should support the first 3 frequencies according to LoRa spec.
 
-#if BAND == 868
-    int freqs[] = {
-        868100000,                                  // Channel 0, 868.1 MHz primary
-        868300000,                                  // Channel 1, 868.3 MHz mandatory
-        868500000,                                  // Channel 2, 868.5 MHz mandatory
-        867100000,                                  // Channel 3, 867.1 MHz
-        867300000, 
-        867500000, 
-        867700000, 
-        867900000, 
-        868800000, 
-        869525000                                   // Channel, for responses gateway (10%)
-        // TTN defines an additional channel at 869.525Mhz using SF9 for class B. Not used
-    };
-#elif BAND == 915
-    int freqs[] = {
-        903900000,                                  // Channel 0, 903.9 MHz primary
-        904100000,                                  // Channel 1, 904.1 MHz mandatory
-        904300000,                                  // Channel 2, 904.3 MHz mandatory
-        904500000,                                  // Channel 3, 904.5 MHz
-        904700000, 
-        904900000, 
-        905100000, 
-        905300000
-    };
-#else
-    #error "BAND has to be defined as 868/915 in config.h file"
-#endif
+int freqs [] = { 
+	868100000, 									// Channel 0, 868.1 MHz primary
+	868300000, 									// Channel 1, 868.3 MHz mandatory
+	868500000, 									// Channel 2, 868.5 MHz mandatory
+	867100000, 									// Channel 3, 867.1 MHz
+	867300000, 
+	867500000, 
+	867700000, 
+	867900000, 
+	868800000, 
+	869525000									// Channel, for responses gateway (10%)
+	// TTN defines an additional channel at 869.525Mhz using SF9 for class B. Not used
+};
+uint32_t  freq = freqs[0];
+uint8_t	 ifreq = 0;								// Channel Index
 
-uint8_t   ifreq = 0;                             // Channel Index
-uint32_t  freq  = freqs[ifreq];
+
 
 // Set the structure for spreading factor
 enum sf_t { SF6=6, SF7, SF8, SF9, SF10, SF11, SF12 };
