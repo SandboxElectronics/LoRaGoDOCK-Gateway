@@ -1,8 +1,8 @@
 /******************************************************************************************
  *
  * Description: Source code for single-channel LoRaWAN Gateway based on ESP8266 and SX1276
- * Version    : 0.8.0
- * Date       : 2017-10-19
+ * Version    : 0.8.1
+ * Date       : 2018-01-25
  * Software   : https://github.com/SandboxElectronics/LoRaGoDOCK-Gateway
  * Hardware   : LoRaGo DOCK – http://sandboxelectronics.com/?product=lorago-dock-single-channel-lorawan-gateway
  * 
@@ -32,9 +32,8 @@
 // Function to run in the setup() function to initialise the update function
 // ----------------------------------------------------------------------------
 void setupOta(char *hostname) {
-
 	ArduinoOTA.begin();
-	Serial.println(F("setupOta:: Started"));
+	Serial.println(F("OTA Started"));
 	
 	// Hostname defaults to esp8266-[ChipID]
 	ArduinoOTA.setHostname(hostname);
@@ -68,11 +67,6 @@ void setupOta(char *hostname) {
 		else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
 		else if (error == OTA_END_ERROR) Serial.println("End Failed");
 	});
-	
-	
-	Serial.println("Ready");
-	Serial.print("IP address: ");
-	Serial.println(WiFi.localIP());
 	
 	// Only if the Webserver is active also
 #if A_SERVER==2										// Displaed for the moment
