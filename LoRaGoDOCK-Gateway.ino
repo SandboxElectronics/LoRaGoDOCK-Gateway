@@ -489,6 +489,8 @@ int WlanConnect() {
 	Serial.print(F(" and connect to IP: 192.168.4.1"));
 	Serial.println();
   	wifiManager.autoConnect(AP_NAME, AP_PASSWD );
+	// Reset the board after 180s waiting for WIFI configuration
+	wifiManager.setConfigPortalTimeout(180);
 	//wifiManager.startConfigPortal(AP_NAME, AP_PASSWD );
 	// At this point, there IS a Wifi Access Point found and connected
 	// We must connect to the local SPIFFS storage to store the access point
