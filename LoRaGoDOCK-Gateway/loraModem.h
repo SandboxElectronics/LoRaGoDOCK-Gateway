@@ -1,8 +1,8 @@
 /******************************************************************************************
  *
  * Description: Source code for single-channel LoRaWAN Gateway based on ESP8266 and SX1276
- * Version    : 0.8.1
- * Date       : 2018-01-25
+ * Version    : 0.8.2
+ * Date       : 2018-11-26
  * Software   : https://github.com/SandboxElectronics/LoRaGoDOCK-Gateway
  * Hardware   : LoRaGo DOCK – http://sandboxelectronics.com/?product=lorago-dock-single-channel-lorawan-gateway
  * 
@@ -35,25 +35,25 @@ long txDelay= 0x00;								// delay time on top of server TMST
         868100000,                                  // Channel 0, 868.1 MHz primary
         868300000,                                  // Channel 1, 868.3 MHz mandatory
         868500000,                                  // Channel 2, 868.5 MHz mandatory
-        867100000,                                  // Channel 3, 867.1 MHz
-        867300000, 
-        867500000, 
-        867700000, 
-        867900000, 
+        867100000,                                  // Channel 3, 867.1 MHz optional
+        867300000,                                  // Channel 4, 867.3 MHz optional
+        867500000,                                  // Channel 5, 867.5 MHz optional
+        867700000,                                  // Channel 6, 867.7 MHz optional
+        867900000,                                  // Channel 7, 867.9 MHz optional
         868800000, 
         869525000                                   // Channel, for responses gateway (10%)
         // TTN defines an additional channel at 869.525Mhz using SF9 for class B. Not used
     };
 #elif BAND == 915
     int freqs[] = {
-        903900000,                                  // Channel 0, 903.9 MHz primary
-        904100000,                                  // Channel 1, 904.1 MHz mandatory
-        904300000,                                  // Channel 2, 904.3 MHz mandatory
+        903900000,                                  // Channel 0, 903.9 MHz
+        904100000,                                  // Channel 1, 904.1 MHz
+        904300000,                                  // Channel 2, 904.3 MHz
         904500000,                                  // Channel 3, 904.5 MHz
-        904700000, 
-        904900000, 
-        905100000, 
-        905300000
+        904700000,                                  // Channel 4, 904.7 MHz
+        904900000,                                  // Channel 5, 904.9 MHz
+        905100000,                                  // Channel 6, 905.1 MHz
+        905300000                                   // Channel 7, 905.3 MHz
     };
 #else
     #error "BAND has to be defined as 868/915 in config.h file"

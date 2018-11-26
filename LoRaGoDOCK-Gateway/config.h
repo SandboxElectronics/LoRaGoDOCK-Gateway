@@ -1,8 +1,8 @@
 /******************************************************************************************
  *
  * Description: Source code for single-channel LoRaWAN Gateway based on ESP8266 and SX1276
- * Version    : 0.8.1
- * Date       : 2018-01-25
+ * Version    : 0.8.2
+ * Date       : 2018-11-26
  * Software   : https://github.com/SandboxElectronics/LoRaGoDOCK-Gateway
  * Hardware   : LoRaGo DOCK – http://sandboxelectronics.com/?product=lorago-dock-single-channel-lorawan-gateway
  * 
@@ -21,7 +21,7 @@
 //
 // ----------------------------------------------------------------------------------------
 
-#define VERSION "0.8.1"
+#define VERSION "0.8.2"
 
 // This value of DEBUG determines whether some parts of code get compiled.
 // Also this is the initial value of debug parameter. 
@@ -39,10 +39,9 @@
 // gateway. It specifies the speed/datarate in which the gateway and node communicate.
 // As the name says, in principle the single channel gateway listens to one channel/frequency
 // and to one spreading factor only.
-// This parameters contains the default value of SF, the actual version can be set with
-// the webserver and it will be stored in SPIFF
+// This parameter is hard-coded in the source code and is not stored in SPIFFS
 // NOTE: The frequency is set in the loraModem.h file and is default 868.100000 MHz.
-#define _SPREADING SF8
+#define _SPREADING SF7
 
 // Channel Activity Detection
 // This function will scan for valid LoRa headers and determine the Spreading 

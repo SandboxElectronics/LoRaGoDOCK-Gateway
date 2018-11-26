@@ -1,7 +1,7 @@
 # LoRaGo DOCK - Single Channel LoRaWAN Gateway based on ESP8266 and SX1276
 
-Version : 0.8.1  
-Date    : 2018-01-25  
+Version : 0.8.2  
+Date    : 2018-11-26
 Software: https://github.com/SandboxElectronics/LoRaGoDOCK-Gateway  
 Hardware: LoRaGo DOCK – http://sandboxelectronics.com/?product=lorago-dock-single-channel-lorawan-gateway  
 
@@ -36,16 +36,14 @@ It is recommended to compile and start the single channel gateway with as little
 1. Install depending libraries. Check "Dependencies" section below.
 1. Install ESP8266 board from with Boards Manager if necessary.
 1. Select Board and related settings:
-   - Board        : "SparkFun ESP8266 Thing Dev"
+   - Board        : "NodeMCU 1.0 (ESP-12E Module)"
    - CPU Frequency: "80 MHz"
-   - Upload Speed : "115200"
 1. Connect the gateway to a serial port of your computer, and configure that port in the IDE.
 1. Edit the config.h file and adapt the "wpas" structure. Make sure that the first line of this structure remains empty and put the SSID and Password of your router on the second line of the array.
-1. Compile the code and doenload the executable over USB to the gateway. If all is right, you should see the gateway starting up on the Serial Monitor.
+1. Compile the code and download the executable over USB to the gateway. If all is right, you should see the gateway starting up on the Serial Monitor (115200).
 1. Note the IP address that the device receives from your router. Use that IP address in a browser on your computer to connect to the gateway with the browser.
 
-Now your gateway should be running. Use the webpage to set "debug" to 1 and you should be able to see packages
-coming in on the Serial monitor.
+Now your gateway should be running. Use the webpage to set "debug" to 1 and you should be able to see packets coming in on the Serial monitor.
 
 
 # Configuration
@@ -53,7 +51,14 @@ coming in on the Serial monitor.
 There are two ways of changing the configuration of the single channel gateway:
 
 1. Changing the config.h file at compile-time
-2. Run the http://<gateway-IP> web interface to change setting at complie time.
+2. Run the http://<gateway-IP> web interface to change settings (limited).
+
+There are some parameters that are hard-coded in the source code. In other words, these settings cannot be changed from the web interface:
+
+1. BAND - The band the gateway is operating in. Currently Band 868 and 915 are supported.
+2. _SPREADING - The spreading factor the gateway is receiving.
+3. _CH - The channel number (which determines the frequency) the gateway is listening on.
+4. _CAD - Whether Channel Activity Detection is enabled in order to receive multiple spreading factor at the same time.
 
 
 ## Editing the config.h file
@@ -79,7 +84,7 @@ Set the `_SPREADING` factor to the desired SF7, SF8 - SF12 value.
 Please note that this value is closely related to teh value used for `_CAD`.
 If `_CAD` is enabled, the value of `_SPREADING` is not used by the gateway as it has all spreading factors enabled.
 
-`#define _SPREADING SF9`
+`#define _SPREADING SF7`
 
 Please note that the default frequency used is 868.1 MHz which can be changed in the loraModem.h file.
 The user is advised NOT to change this setting and only use the default 868.1 MHz frequency.
@@ -227,16 +232,7 @@ Note: When the WiFiManager software is enabled (it is by default) there must at 
 
 ## Webserver
 
-The built-in webserver can be used to display status and debugging information. Also the webserver allows the user to change certain settings at run-time such as the debug level or switch on
-and off the CAD function. It can be accessed with the following URL: http://<YourGatewayIP>:80 where <YourGatewayIP> is the IP given by the router to the ESP8266 at startup. It is probably something like 192.168.1.XX. The webserver shows various configuration settings as well as providing functions to set parameters.
-
-The following parameters can be set using the webServer.
-- Debug Level (0-4)
-- CAD mode on or off (STD mode)
-- Switch frequency hopping on and off (Set to OFF)
-- When frequency Hopping is off: Select the frequency the gateway will work with.
-NOTE: Frequency hopping is experimental and does not work correctly.
-- When CAD mode is off: Select the Spreading Factor (SF) the gateway will work with
+The built-in webserver can be used to display status and debugging information. Also the webserver allows the user to change certain settings at run-time such as the debug level. It can be accessed with the following URL: http://<YourGatewayIP>:80 where <YourGatewayIP> is the IP given by the router to the ESP8266 at startup. It is probably something like 192.168.1.XX. The webserver shows various configuration settings as well as providing functions to set parameters.
 
 
 # Dependencies

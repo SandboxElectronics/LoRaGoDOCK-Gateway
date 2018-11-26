@@ -1,8 +1,8 @@
 /******************************************************************************************
  *
  * Description: Source code for single-channel LoRaWAN Gateway based on ESP8266 and SX1276
- * Version    : 0.8.1
- * Date       : 2018-01-25
+ * Version    : 0.8.2
+ * Date       : 2018-11-26
  * Software   : https://github.com/SandboxElectronics/LoRaGoDOCK-Gateway
  * Hardware   : LoRaGo DOCK – http://sandboxelectronics.com/?product=lorago-dock-single-channel-lorawan-gateway
  * 
@@ -15,7 +15,7 @@
  *
  *****************************************************************************************/
 
-#include "config.h"	                            // This file contains configuration of GWay
+#include "config.h"	                            // This file contains configuration of the gateway
 
 #include <Esp.h>
 #include <string.h>
@@ -37,12 +37,6 @@
 #include <SimpleTimer.h>
 #include <gBase64.h>							// https://github.com/adamvr/arduino-base64 (changed the name)
 #include <ESP8266mDNS.h>
-
-extern "C" {
-#include "user_interface.h"
-#include "lwip/err.h"
-#include "lwip/dns.h"
-}
 
 #include "loraModem.h"
 #include "loraFiles.h"
@@ -352,15 +346,6 @@ void setupTime() {
 
 // ============================================================================
 // UDP AND WLAN FUNCTIONS
-
-// ----------------------------------------------------------------------------
-// GET THE DNS SERVER IP address
-// ----------------------------------------------------------------------------
-IPAddress getDnsIP() {
-	ip_addr_t dns_ip = dns_getserver(0);
-	IPAddress dns = IPAddress(dns_ip.addr);
-	return((IPAddress) dns);
-}
 
 // ----------------------------------------------------------------------------
 // Prepare the Config Parameters
@@ -902,6 +887,8 @@ void sendstat() {
 
 
 void setup() {
+    char buf[30];
+    
 	Serial.begin(_BAUDRATE);
     Serial.flush();
     Serial.println();
@@ -928,7 +915,8 @@ void setup() {
     Serial.print(F("MAC Addr: "));
     
     for (int i=0; i<6; i++) {
-        printf("%02X", MAC_array[i]);
+        sprintf(buf, "%02X", MAC_array[i]);
+        Serial.print(buf);
 
         if (i<5) {
             Serial.print("-");
